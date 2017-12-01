@@ -1,4 +1,4 @@
-#MP7
+# MP7
 
 Final project for CS125 by Alex Shi and Arjun Arun
 
