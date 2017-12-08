@@ -16,20 +16,9 @@ var align = function () {
 };
 
 var update = function () {
-	//player.update();
-	if (keyMap[87] || keyMap[38]) { // W or up arrow key
-		player.position[1] += 10;
-	}
-	if (keyMap[65] || keyMap[37]) { // A or left arrow key
-		player.position[0] -= 10;
-	}
-	if (keyMap[83] || keyMap[40]) { // S or down arrow key
-		player.position[1] -= 10;
-	}
-	if (keyMap[68] || keyMap[39]) { // D or right arrow key
-		player.position[0] += 10;
-	}
-	socket.emit("update", player);
+	player.update();
+	
+	socket.emit("update", player.position);
 };
 
 var render = function () {
@@ -44,9 +33,7 @@ var render = function () {
 
 	// Draw other players first
 	for (var id in players) {
-		let player = players[id];
-		ctx.fillStyle = player.color;
-		ctx.fillRect(player.position[0] - 50, player.position[1] - 50, 100, 100);
+		players[id].render(ctx);
 	}
 
 	// Draw your player last to it's on top
@@ -83,11 +70,11 @@ $(document).ready(function () {
 	socket = io.connect(location.pathname);
 
 	socket.on("update", function (data) {
-		players[data.id] = data;
+		players[data.id].position = data;
 	});
 
 	socket.on("join", function (data) {
-		players[data.id] = data;
+		players[data.id] = new Player(data.color, data.position, [0, 0], data.id);
 	});
 
 	socket.on("leave", function (data) {
@@ -95,7 +82,7 @@ $(document).ready(function () {
 	});
 
 	socket.on("init", function (data) {
-		player = data;
+		player = new Player(data.color, data.position, [0, 0], data.id);
 		frame();
 	});
 })

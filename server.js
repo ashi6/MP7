@@ -36,6 +36,7 @@ io.on("connection", function (socket) {
 	players[socket.id] = playerData;
 
 	socket.on("disconnect", function (data) {
+		console.log(socket.client.id + " left");
 		delete players[socket.client.id];
 		socket.broadcast.emit("leave", socket.client.id);
 	});
@@ -45,7 +46,7 @@ io.on("connection", function (socket) {
 	});
 });
 
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 80;
 server.listen(port, function () {
     console.log(`Running on port ${port}...`);
 });
