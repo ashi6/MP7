@@ -26,6 +26,7 @@ io.on("connection", function (socket) {
 		color: randomColor()
 	};
 	socket.emit("init", playerData);
+	socket.broadcast.emit("join", playerData);
 
 	for (var id in players) {
 		if (players.hasOwnProperty(id)) {

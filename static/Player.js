@@ -1,9 +1,11 @@
+const MAX_SPEED = 4;
+
 class Player {
 	constructor (color, position, velocity, id) {
 		this.color = color;
 		this.position = position;
 		this.velocity = velocity;
-		this.size = 100;
+		this.size = 50;
 		this.id = id;
 	}
 
@@ -35,11 +37,16 @@ class Player {
 	accelerate (dx, dy) {
 		this.velocity[0] += dx;
 		this.velocity[1] += dy;
+		let m = Math.sqrt(this.velocity[0] * this.velocity[0] + this.velocity[1] * this.velocity[1]);
+		if (m > MAX_SPEED) {
+			this.velocity[0] *= MAX_SPEED / m;
+			this.velocity[1] *= MAX_SPEED / m;
+		}
 	}
 
 	render (ctx) {
 		ctx.fillStyle = this.color;
-		ctx.fillRect(this.position[0] - size / 2, this.position[1] - size / 2, size, size);
+		ctx.fillRect(this.position[0] - this.size / 2, this.position[1] - this.size / 2, this.size, this.size);
 	}
 
 	toJSON () {

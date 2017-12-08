@@ -17,8 +17,10 @@ var align = function () {
 
 var update = function () {
 	player.update();
-	
-	socket.emit("update", player.position);
+	for (var id in players) {
+		players[id].update();
+	}
+	socket.emit("update", player.toJSON());
 };
 
 var render = function () {
@@ -37,8 +39,7 @@ var render = function () {
 	}
 
 	// Draw your player last to it's on top
-	ctx.fillStyle = player.color;
-	ctx.fillRect(player.position[0] - 50, player.position[1] - 50, 100, 100);
+	player.render(ctx);
 
 	ctx.restore();
 };
@@ -70,10 +71,14 @@ $(document).ready(function () {
 	socket = io.connect(location.pathname);
 
 	socket.on("update", function (data) {
-		players[data.id].position = data;
+		if (players[data.id]) {
+			players[data.id].position = data.position;
+			players[data.id].velocity = data.velocity;
+		}
 	});
 
 	socket.on("join", function (data) {
+		console.log("join", data);
 		players[data.id] = new Player(data.color, data.position, [0, 0], data.id);
 	});
 
