@@ -7,14 +7,18 @@ class Player {
 		this.velocity = velocity;
 		this.size = 50;
 		this.id = id;
+		this.health = 100;
 	}
 
 	isAttacking (player2) {
-		return this.position == player2.position;
-	}
-
-	compareSpeed (player2) {
-		return this.velocity - player2.velocity
+		if (this.position[0] < player2.position[0] + player2.size/2 && this.position[0] > player2.position[0] - player2.size/2) {
+			if (this.position[1] < player2.position[1] + player2.size/2 && this.position[1] > player2.position[1] - player2.size/2) {
+				this.health -= 20;
+				player2.health -= 20;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	update (ctx) {
@@ -54,7 +58,8 @@ class Player {
 			color: this.color,
 			position: this.position,
 			velocity: this.velocity,
-			id: this.id
+			id: this.id,
+			health: this.id
 		}
 	}
 }
