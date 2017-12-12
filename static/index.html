@@ -1,23 +1,34 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title>MP7</title>
-	<style>
-		html, body {
-			width:  100%;
-			height: 100%;
-  			margin: 0px;
-  			border: 0;
-  			overflow: hidden;
-  			display: block;
-		}
-	</style>
+    <title>MP7</title>
+    <style>
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        border: 0;
+        overflow: hidden;
+        display: block;
+    }
+
+    #status {
+    	position: absolute;
+    	margin-top: 10px;
+    	margin-left: 10px;
+    }
+    </style>
 </head>
+
 <body>
-	<canvas id="canvas"></canvas>
-	<script src="jquery.min.js"></script>
-	<script src="socket.io.min.js"></script>
-	<script src="main.js"></script>
-	<script src="Player.js"></script>
+	<div id="status"></div>
+    <canvas id="canvas"></canvas>
+    <script src="jquery.min.js"></script>
+    <script src="socket.io.min.js"></script>
+    <script src="main.js"></script>
+    <script src="Player.js"></script>
 </body>
+
 </html>
