@@ -17,9 +17,10 @@ var canFire = true;
 
 // for misc stats
 var stats = {
-	totalDamage: 0,
-	totalHits: 0,
-	shotsFired: 0
+    totalDamage: 0,
+    totalHits: 0,
+    shotsFired: 0,
+    kills: 0
 };
 
 // socket.io socket
@@ -31,10 +32,10 @@ var windowHeight;
 
 const TILE_SIZE = 500;
 
-const LEFT_BOUND = 4 * -TILE_SIZE + 22;
-const RIGHT_BOUND = 4 * TILE_SIZE - 32;
-const LOWER_BOUND = 6 * -TILE_SIZE + 22;
-const UPPER_BOUND = 6 * TILE_SIZE - 32;
+const LEFT_BOUND = 4 * -TILE_SIZE - 1;
+const RIGHT_BOUND = 4 * TILE_SIZE - 9;
+const LOWER_BOUND = 6 * -TILE_SIZE - 1;
+const UPPER_BOUND = 6 * TILE_SIZE - 9;
 
 // Resizes the canvas so it fills the page
 var align = function() {
@@ -54,33 +55,33 @@ var update = function() {
     socket.emit("update", player.toJSON());
 
     for (let id in bullets) {
-    	let bullet = bullets[id];
-    	let damage = Math.round(bullet.power * 10);
+        let bullet = bullets[id];
+        let damage = Math.round(bullet.power * 10);
         bullet.update();
         if (player.health > 0 && bullet.player.id != player.id && bullet.isAttacking(player)) {
-        	socket.emit("hit", {
-        		player: player.id,
-        		id: id,
-        		damage: damage
-        	});
-        	player.takeDamage(damage);
-        	bullet.power = 0;
+            socket.emit("hit", {
+                player: player.id,
+                id: id,
+                damage: damage
+            });
+            player.takeDamage(damage);
+            bullet.power = 0;
         }
         if (bullet.power <= 0) delete bullets[id];
     }
 
     if (keyMap[32] && player.health > 0 && canFire) {
-    	canFire = false;
-    	let id = stats.shotsFired;
-    	let m = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
-    	socket.emit("bullet", {
-    		player: player.id,
-    		velocity: [20 * mouseX / m + player.velocity[0], 20 * mouseY / m + player.velocity[1]],
-    		id: id
-    	});
-    	stats.shotsFired++;
-    	bullets[player.id + id] = new Bullet(player.color, [...player.position], [20 * mouseX / m + player.velocity[0], 20 * mouseY / m + player.velocity[1]], player);
-    	setTimeout(() => { canFire = true; }, 300);
+        canFire = false;
+        let id = stats.shotsFired;
+        let m = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
+        socket.emit("bullet", {
+            player: player.id,
+            velocity: [20 * mouseX / m + player.velocity[0], 20 * mouseY / m + player.velocity[1]],
+            id: id
+        });
+        stats.shotsFired++;
+        bullets[player.id + id] = new Bullet(player.color, [...player.position], [20 * mouseX / m + player.velocity[0], 20 * mouseY / m + player.velocity[1]], player);
+        setTimeout(() => { canFire = true; }, 300);
     }
 
     $("#status").html(`position: ${player.position[0].toFixed(0)}, ${player.position[1].toFixed(0)}<br>
@@ -89,9 +90,9 @@ var update = function() {
     	damage dealt: ${stats.totalDamage}`);
 
     if (keyMap[9]) {
-    	$("#status").css("margin-left", "10px");
+        $("#status").css("margin-left", "10px");
     } else {
-    	$("#status").css("margin-left", "-250px");
+        $("#status").css("margin-left", "-250px");
     }
 };
 
@@ -112,18 +113,18 @@ var render = function() {
 
     // Draw vertical grid lines
     for (let x = -player.position[0] % TILE_SIZE - 2 * TILE_SIZE - ctx.lineWidth; x < windowWidth + ctx.lineWidth; x += TILE_SIZE) {
-    	ctx.beginPath();
-    	ctx.moveTo(x, -windowHeight / 2);
-    	ctx.lineTo(x, windowHeight / 2);
-    	ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, -windowHeight / 2);
+        ctx.lineTo(x, windowHeight / 2);
+        ctx.stroke();
     }
 
-	// Draw horizontal grid lines
+    // Draw horizontal grid lines
     for (let y = -player.position[1] % TILE_SIZE - TILE_SIZE - ctx.lineWidth; y < windowHeight + ctx.lineWidth; y += TILE_SIZE) {
-    	ctx.beginPath();
-    	ctx.moveTo(-windowWidth / 2, y);
-    	ctx.lineTo(windowWidth / 2, y);
-    	ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-windowWidth / 2, y);
+        ctx.lineTo(windowWidth / 2, y);
+        ctx.stroke();
     }
 
     ctx.translate(-player.position[0], -player.position[1]);
@@ -136,7 +137,7 @@ var render = function() {
     for (let id in bullets) {
         bullets[id].render(ctx);
     }
-    
+
     ctx.globalAlpha = 1;
 
     // Draw other players before yours
@@ -200,20 +201,32 @@ $(document).ready(function() {
     });
 
     socket.on("bullet", function(data) {
-    	let player = players[data.player];
+        let player = players[data.player];
         if (player) {
             bullets[data.player + data.id] = new Bullet(player.color, [...player.position], data.velocity, player);
         }
     });
 
     socket.on("hit", function(data) {
-    	console.log(bullets[data.id].player.id + " hit " + data.player);
-    	players[data.player].takeDamage(data.damage);
-    	if (bullets[data.id].player.id == player.id) {
-    		stats.totalHits++;
-    		stats.totalDamage += data.damage;
-    	}
-    	delete bullets[data.id];
+        players[data.player].takeDamage(data.damage);
+        if (bullets[data.id].player.id != player.id && players[data.player].health <= 0) {
+        	console.log(bullets[data.id].player.id + " killed " + data.player);
+        	// Add to ill feed
+        } else {
+        	console.log(bullets[data.id].player.id + " hit " + data.player);
+        }
+        if (bullets[data.id].player.id == player.id) {
+            stats.totalHits++;
+            stats.totalDamage += data.damage;
+            if (players[data.player].health <= 0) {
+            	stats.kills++;
+            	console.log("You killed " + data.player);
+            	// Add to kill feed, notify kill
+            } else {
+            	// You hit someone!
+            }
+        }
+        delete bullets[data.id];
     });
 
     socket.on("join", function(data) {
@@ -229,4 +242,4 @@ $(document).ready(function() {
         player = new Player(data.color, data.position, [0, 0], data.id);
         frame();
     });
-})
+});

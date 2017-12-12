@@ -15,18 +15,22 @@
     }
 
     #status {
-    	font-family: Arial;
-    	position: absolute;
-    	margin-top: 40px;
-    	margin-left: -250px;
-    	-webkit-transition: margin-left 0.5s;
-    	transition: margin-left 0.5s;
+        font-family: Arial;
+        position: absolute;
+        margin-top: 40px;
+        margin-left: -250px;
+        -webkit-transition: margin-left 0.5s;
+        transition: margin-left 0.5s;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
     </style>
 </head>
 
 <body>
-	<div id="status"></div>
+    <div id="status"></div>
     <canvas id="canvas"></canvas>
     <script src="jquery.min.js"></script>
     <script src="socket.io.min.js"></script>

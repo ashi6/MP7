@@ -10,11 +10,14 @@ var room = io.of("/");
 var players = {};
 
 var getSpawn = function() {
-    return [Math.floor(Math.random() * 5000) / 10 - 250, Math.floor(Math.random() * 5000) / 10 - 250];
+	var width = 6000;
+	var height = 4000;
+    return [Math.round(Math.random() * width - width / 2), Math.round(Math.random() * height - height / 2)];
 };
 
 var randomColor = function() {
-    return `hsl(${Math.random() * 310 + 20}, 100%, 50%)`;
+	// range from 20 to 330 to prevent red shades
+    return `hsl(${Math.random() * 310 + 20}, 100%, ${Math.random() * 25 + 50}%)`;
 };
 
 io.on("connection", function(socket) {

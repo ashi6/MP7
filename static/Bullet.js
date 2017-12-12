@@ -9,7 +9,7 @@ class Bullet {
     }
 
     update(ctx) {
-    	this.power = Math.max(this.power - 1 / 200, 0);
+        this.power = Math.max(this.power - 1 / 200, 0);
         this.position[0] += this.velocity[0];
         if (this.position[0] < LEFT_BOUND) {
             this.position[0] = 2 * LEFT_BOUND - this.position[0];
@@ -42,8 +42,8 @@ class Bullet {
     }
 
     render(ctx) {
-    	ctx.globalAlpha = this.power;
-    	ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.power;
+        ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.position[0], this.position[1], this.size / 2, 0, 2 * Math.PI, false);
         ctx.fill();

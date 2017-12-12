@@ -23,12 +23,12 @@ class Player {
     }
 
     takeDamage(damage) {
-    	this.health = Math.max(this.health - damage, 0);
-    	this.damageAlpha = 1;
+        this.health = Math.max(this.health - damage, 0);
+        this.damageAlpha = 1;
     };
 
     updateKeys() {
-    	// accelerate depending on keys pressed
+        // accelerate depending on keys pressed
         if (keyMap[87] || keyMap[38]) { // W or up arrow key
             this.accelerate(0, 0.4);
         }
@@ -46,22 +46,22 @@ class Player {
     update() {
         // update position
         this.position[0] += this.velocity[0];
-        if (this.position[0] < LEFT_BOUND) {
-            this.position[0] = 2 * LEFT_BOUND - this.position[0];
+        if (this.position[0] - this.size / 2 < LEFT_BOUND) {
+            this.position[0] = LEFT_BOUND + this.size / 2;
             this.velocity[0] *= -0.5;
         }
-        if (this.position[0] > RIGHT_BOUND) {
-            this.position[0] = 2 * RIGHT_BOUND - this.position[0];
+        if (this.position[0] + this.size / 2 > RIGHT_BOUND) {
+            this.position[0] = RIGHT_BOUND - this.size / 2;
             this.velocity[0] *= -0.5;
         }
 
         this.position[1] += this.velocity[1];
-        if (this.position[1] < LOWER_BOUND) {
-            this.position[1] = 2 * LOWER_BOUND - this.position[1];
+        if (this.position[1] - this.size / 2 < LOWER_BOUND) {
+            this.position[1] = LOWER_BOUND + this.size / 2;
             this.velocity[1] *= -0.5;
         }
-        if (this.position[1] > UPPER_BOUND) {
-            this.position[1] = 2 * UPPER_BOUND - this.position[1];
+        if (this.position[1] + this.size / 2 > UPPER_BOUND) {
+            this.position[1] = UPPER_BOUND - this.size / 2;
             this.velocity[1] *= -0.5;
         }
 
@@ -84,8 +84,8 @@ class Player {
     }
 
     render(ctx) {
-    	if (this.health <= 0) return;
-    	ctx.globalAlpha = 1;
+        if (this.health <= 0) return;
+        ctx.globalAlpha = 1;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.position[0] - this.size / 2, this.position[1] - this.size / 2, this.size, this.size);
         ctx.strokeRect(this.position[0] - this.size / 2, this.position[1] - this.size / 2, this.size, this.size);
