@@ -11,6 +11,17 @@ var players = {};
 // The client's player
 var player;
 
+// bullet stuff
+var bullets = {};
+var canFire = true;
+
+// for misc stats
+var stats = {
+	totalDamage: 0,
+	totalHits: 0,
+	shotsFired: 0
+};
+
 // socket.io socket
 var socket;
 
@@ -37,12 +48,51 @@ var align = function() {
 var update = function() {
     player.update();
     player.updateKeys();
-    for (var id in players) {
+    for (let id in players) {
         players[id].update();
     }
     socket.emit("update", player.toJSON());
 
-    $("#status").html(`${player.position[0]}, ${player.position[1]}`);
+    for (let id in bullets) {
+    	let bullet = bullets[id];
+    	let damage = Math.round(bullet.power * 10);
+        bullet.update();
+        if (player.health > 0 && bullet.player.id != player.id && bullet.isAttacking(player)) {
+        	socket.emit("hit", {
+        		player: player.id,
+        		id: id,
+        		damage: damage
+        	});
+        	player.takeDamage(damage);
+        	bullet.power = 0;
+        }
+        if (bullet.power <= 0) delete bullets[id];
+    }
+
+    if (keyMap[32] && player.health > 0 && canFire) {
+    	canFire = false;
+    	let id = stats.shotsFired;
+    	let m = Math.sqrt(mouseX * mouseX + mouseY * mouseY);
+    	socket.emit("bullet", {
+    		player: player.id,
+    		velocity: [20 * mouseX / m + player.velocity[0], 20 * mouseY / m + player.velocity[1]],
+    		id: id
+    	});
+    	stats.shotsFired++;
+    	bullets[player.id + id] = new Bullet(player.color, [...player.position], [20 * mouseX / m + player.velocity[0], 20 * mouseY / m + player.velocity[1]], player);
+    	setTimeout(() => { canFire = true; }, 300);
+    }
+
+    $("#status").html(`position: ${player.position[0].toFixed(0)}, ${player.position[1].toFixed(0)}<br>
+    	shots fired: ${stats.shotsFired}<br>
+    	total hits: ${stats.totalHits}<br>
+    	damage dealt: ${stats.totalDamage}`);
+
+    if (keyMap[9]) {
+    	$("#status").css("margin-left", "10px");
+    } else {
+    	$("#status").css("margin-left", "-250px");
+    }
 };
 
 // Called every frame to draw everything
@@ -53,15 +103,15 @@ var render = function() {
     ctx.clearRect(0, 0, windowWidth, windowHeight);
     ctx.save();
 
-    ctx.strokeStyle = '#DDD';
-
+    ctx.strokeStyle = "#DDD";
     ctx.lineWidth = 5;
+    ctx.globalAlpha = 1;
 
     ctx.translate(windowWidth / 2, windowHeight / 2);
     ctx.scale(1, -1);
 
     // Draw vertical grid lines
-    for (var x = -player.position[0] % TILE_SIZE - 2 * TILE_SIZE - ctx.lineWidth; x < windowWidth + ctx.lineWidth; x += TILE_SIZE) {
+    for (let x = -player.position[0] % TILE_SIZE - 2 * TILE_SIZE - ctx.lineWidth; x < windowWidth + ctx.lineWidth; x += TILE_SIZE) {
     	ctx.beginPath();
     	ctx.moveTo(x, -windowHeight / 2);
     	ctx.lineTo(x, windowHeight / 2);
@@ -69,7 +119,7 @@ var render = function() {
     }
 
 	// Draw horizontal grid lines
-    for (var y = -player.position[1] % TILE_SIZE - TILE_SIZE - ctx.lineWidth; y < windowHeight + ctx.lineWidth; y += TILE_SIZE) {
+    for (let y = -player.position[1] % TILE_SIZE - TILE_SIZE - ctx.lineWidth; y < windowHeight + ctx.lineWidth; y += TILE_SIZE) {
     	ctx.beginPath();
     	ctx.moveTo(-windowWidth / 2, y);
     	ctx.lineTo(windowWidth / 2, y);
@@ -78,8 +128,19 @@ var render = function() {
 
     ctx.translate(-player.position[0], -player.position[1]);
 
-    // Draw other players first
-    for (var id in players) {
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+
+    // Draw bullets
+    for (let id in bullets) {
+        bullets[id].render(ctx);
+    }
+    
+    ctx.globalAlpha = 1;
+
+    // Draw other players before yours
+    for (let id in players) {
         players[id].render(ctx);
     }
 
@@ -87,6 +148,11 @@ var render = function() {
     player.render(ctx);
 
     ctx.restore();
+
+    // Draw health bar
+    ctx.fillStyle = `rgb(${255 - 255 * player.health / 100}, ${255 * player.health / 100}, 0)`;
+    ctx.fillRect(10, 10, windowWidth / 300 * player.health, 25);
+    ctx.strokeRect(10, 10, windowWidth / 300 * player.health, 25);
 };
 
 var frame = function() {
@@ -104,6 +170,7 @@ $(document).ready(function() {
     var keyPressed = function(e) {
         var code = (window.event) ? event.keyCode : e.keyCode;
         keyMap[code] = true;
+        if (e.keyCode == 9) e.preventDefault();
     };
 
     var keyReleased = function(e) {
@@ -111,8 +178,8 @@ $(document).ready(function() {
         keyMap[code] = false;
     };
 
-    document.addEventListener('keydown', keyPressed, false);
-    document.addEventListener('keyup', keyReleased, false);
+    document.addEventListener("keydown", keyPressed, false);
+    document.addEventListener("keyup", keyReleased, false);
 
     // Mouse listener
     var captureMouseLocation = function(e) {
@@ -130,6 +197,23 @@ $(document).ready(function() {
             players[data.id].position = data.position;
             players[data.id].velocity = data.velocity;
         }
+    });
+
+    socket.on("bullet", function(data) {
+    	let player = players[data.player];
+        if (player) {
+            bullets[data.player + data.id] = new Bullet(player.color, [...player.position], data.velocity, player);
+        }
+    });
+
+    socket.on("hit", function(data) {
+    	console.log(bullets[data.id].player.id + " hit " + data.player);
+    	players[data.player].takeDamage(data.damage);
+    	if (bullets[data.id].player.id == player.id) {
+    		stats.totalHits++;
+    		stats.totalDamage += data.damage;
+    	}
+    	delete bullets[data.id];
     });
 
     socket.on("join", function(data) {

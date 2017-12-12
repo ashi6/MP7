@@ -14,7 +14,7 @@ var getSpawn = function() {
 };
 
 var randomColor = function() {
-    return `hsl(${Math.random() * 360}, 100%, 50%)`;
+    return `hsl(${Math.random() * 310 + 20}, 100%, 50%)`;
 };
 
 io.on("connection", function(socket) {
@@ -44,6 +44,14 @@ io.on("connection", function(socket) {
 
     socket.on("update", function(data) {
         socket.broadcast.emit("update", data);
+    });
+
+    socket.on("bullet", function(data) {
+        socket.broadcast.emit("bullet", data);
+    });
+
+    socket.on("hit", function(data) {
+        socket.broadcast.emit("hit", data);
     });
 });
 

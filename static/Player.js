@@ -8,6 +8,7 @@ class Player {
         this.size = 50;
         this.id = id;
         this.health = 100;
+        this.damageAlpha = 0;
     }
 
     isAttacking(player2) {
@@ -20,6 +21,11 @@ class Player {
         }
         return false;
     }
+
+    takeDamage(damage) {
+    	this.health = Math.max(this.health - damage, 0);
+    	this.damageAlpha = 1;
+    };
 
     updateKeys() {
     	// accelerate depending on keys pressed
@@ -62,6 +68,9 @@ class Player {
         // simulate friction
         this.velocity[0] *= 0.98;
         this.velocity[1] *= 0.98;
+
+        // update red flash on damage
+        this.damageAlpha = Math.max(this.damageAlpha - 0.1, 0);
     }
 
     accelerate(dx, dy) {
@@ -75,7 +84,13 @@ class Player {
     }
 
     render(ctx) {
+    	if (this.health <= 0) return;
+    	ctx.globalAlpha = 1;
         ctx.fillStyle = this.color;
+        ctx.fillRect(this.position[0] - this.size / 2, this.position[1] - this.size / 2, this.size, this.size);
+        ctx.strokeRect(this.position[0] - this.size / 2, this.position[1] - this.size / 2, this.size, this.size);
+        ctx.fillStyle = "#F00";
+        ctx.globalAlpha = this.damageAlpha;
         ctx.fillRect(this.position[0] - this.size / 2, this.position[1] - this.size / 2, this.size, this.size);
     }
 
